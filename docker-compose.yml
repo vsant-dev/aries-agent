@@ -1,0 +1,62 @@
+version: "3"
+
+networks: 
+    internal_network:
+
+services: 
+    ipfs:
+        image: ipfs/go-ipfs
+        volumes: 
+            - ./ipfs/staging:/ipfs/staging
+            - ./ipfs/data:/ipfs/data
+        ports: 
+            - 4001:4001
+            - 4001:4001/udp
+            - 127.0.0.1:8080:8080
+            - 127.0.0.1:5001:5001
+        networks: 
+            - internal_network
+    webhook_api:
+        image: webhook_api
+        build: 
+            context: ./webhook_api
+        environment: 
+            ipfs_host: ipfs
+        ports: 
+            - 3200:3200
+        networks: 
+            - internal_network
+    webhook_api_agent:
+        image: agent_runner
+        build: 
+            context: ./aries_agent_runner
+            dockerfile: ./docker/Dockerfile.run
+        environment: 
+            identity: ipfs_api_agent
+            port: 3201
+            admin_port: 3202
+            webhook_url: http://ipfs_api:3200/agent/webhooks
+        ports: 
+            - 3201:3201
+            - 3202:3202
+        networks: 
+            - internal_network
+    # iot_device_agent:
+    #     image: agent_runner
+    #     build: 
+    #         context: ./aries_agent_runner
+    #         dockerfile: ./docker/Dockerfile.run
+    #     environment: 
+    #         identity: iot_device_1
+    #         port: 8020
+    #         admin_port: 8021
+    #     ports: 
+    #         - 8020:8020
+    #         - 8021:8021
+    #     networks: 
+    #         - demo_network
+            
+
+
+
+        
