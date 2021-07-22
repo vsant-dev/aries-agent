@@ -1,0 +1,17 @@
+FROM bcgovimages/von-image:py36-1.15-1
+
+ADD aries_cloudagent ./aries_cloudagent
+ADD bin ./bin
+ADD lib ./lib
+ADD plugins ./plugins
+ADD main.py ./
+ADD requirements*.txt ./
+
+RUN pip install wheel
+RUN pip install --no-cache-dir -r requirements.aries_agent.txt -r requirements.txt -r requirements.indy.txt
+RUN pip install --no-cache-dir ./plugins/data_webhooks_protocol
+
+ENV external_host "host.docker.internal"
+
+# CMD pip show data_exchange_protocol
+ENTRYPOINT ["/bin/bash", "-c", "agent-py \"$@\"", "--"]

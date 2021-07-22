@@ -1,0 +1,66 @@
+FROM arm32v7/ubuntu:18.04 as build
+ARG uid=1000
+
+RUN apt-get update \
+    && apt-get install -qq \
+    build-essential \
+    pkg-config \
+    cmake \
+    libssl-dev \
+    libsqlite3-dev \
+    libzmq3-dev \
+    libncursesw5-dev \
+    python3-pip \
+    curl \
+    git \
+    libzmq3-dev \
+    libffi-dev \
+    libsodium-dev \
+    libxml2-dev \
+    libxslt-dev
+
+RUN useradd -m -u $uid indy
+USER indy
+WORKDIR /home/indy
+
+RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
+ENV PATH /home/indy/.cargo/bin:$PATH
+
+RUN git clone https://github.com/hyperledger/indy-sdk.git \
+    && cd indy-sdk \
+    && git checkout v1.11.1
+
+RUN cd indy-sdk/libindy && cargo build --release --features sodium_static
+ENV LD_LIBRARY_PATH $LD_LIBRARY_PATH:/home/indy/indy-sdk/libindy/target/release
+
+FROM arm32v7/ubuntu:18.04 as aca-image
+
+RUN apt-get update \
+    && apt-get install -qq \
+    python3 \ 
+    python3-pip \
+    python-dev \
+    git \
+    libffi-dev \
+    libxml2-dev \
+    libxslt-dev
+
+RUN pip3 install --upgrade pip
+
+COPY --from=build /home/indy/indy-sdk/libindy/target/release /usr/local/lib
+
+ADD requirements*.txt ./
+
+RUN pip3 install --no-cache-dir -r requirements.indy.txt
+RUN pip3 install --no-cache-dir -r requirements.aries_agent.txt
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir ./plugins/data_exchange_protocol
+
+ADD aries_cloudagent ./aries_cloudagent
+ADD bin ./bin
+ADD lib ./lib
+ADD main.py ./
+
+ENV external_host "host.docker.internal"
+
+ENTRYPOINT ["/bin/bash", "-c", "agent-py \"$@\"", "--"]
