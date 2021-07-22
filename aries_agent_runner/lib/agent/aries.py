@@ -173,7 +173,7 @@ class AriesAgent(Agent):
         for plugin in self.plugins:
             result.append(("--plugin", plugin))
 
-        result.append(("--plugin", "data_exchange_protocol"))
+        result.append(("--plugin", "data_webhooks_protocol"))
 
         return result
 

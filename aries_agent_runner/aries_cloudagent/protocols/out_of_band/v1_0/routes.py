@@ -182,7 +182,7 @@ async def invitation_create(request: web.BaseRequest):
 
 
 @docs(
-    tags=["out-of-band"],
+    tags=["out-of-band"], 
     summary="Receive a new connection invitation",
 )
 @querystring_schema(InvitationReceiveQueryStringSchema())
