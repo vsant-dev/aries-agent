@@ -145,7 +145,7 @@ if __name__ == "__main__":
         "seed": "random",
         "label": args.label or os.getenv('label'),
         "webhook_url": args.webhook_url or os.getenv('webhook_url'),
-        "external_host": os.getenv('external_host'),
+        "external_host": os.getenv('external_host') or 'localhost',
         "auto_accept_invites": args.auto_accept_invites or os.getenv('auto_accept_invites'),
         "plugins": (args.plugin or []) + (os.getenv('plugin') or [])
         
